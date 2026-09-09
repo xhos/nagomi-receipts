@@ -16,9 +16,9 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 
-	"null-receipts/internal/config"
-	nullv1 "null-receipts/internal/gen/null/v1"
-	"null-receipts/internal/server"
+	"nagomi-receipts/internal/config"
+	nagomiv1 "nagomi-receipts/internal/gen/nagomi/v1"
+	"nagomi-receipts/internal/server"
 )
 
 func main() {
@@ -64,7 +64,7 @@ func main() {
 	}
 
 	srv := grpc.NewServer()
-	nullv1.RegisterReceiptOCRServiceServer(srv, ocrService)
+	nagomiv1.RegisterReceiptOCRServiceServer(srv, ocrService)
 
 	healthSrv := health.NewServer()
 	healthSrv.SetServingStatus("", grpc_health_v1.HealthCheckResponse_SERVING)

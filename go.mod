@@ -1,4 +1,4 @@
-module null-receipts
+module nagomi-receipts
 
 go 1.25.4
 

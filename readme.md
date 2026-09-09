@@ -1,4 +1,4 @@
-# null-receipts
+# nagomi-receipts
 
 stateless gRPC mircoservice that parses images of store receipts into JSON using Ollama or Gemini.
 
@@ -26,14 +26,14 @@ all configuration is done via environment variables. copy `.env.example` to `.en
 |----------|---------|-------------|
 | `LISTEN_ADDRESS` | `127.0.0.1:55556` | server listen address (port, :port, or host:port) |
 | `LOG_LEVEL` | `info` | log level: debug, info, warn, error |
-| `LOG_FORMAT` | `text` | log format: text or json. when json, logs are written to both stderr and `null-receipts.log` |
+| `LOG_FORMAT` | `text` | log format: text or json. when json, logs are written to both stderr and `nagomi-receipts.log` |
 | `PROVIDER` | `ollama` | inference provider: ollama or gemini |
 | `OLLAMA_HOST` | `http://127.0.0.1:11434` | ollama API endpoint |
 | `OLLAMA_MODEL` | `qwen2.5vl:3b` | ollama model name |
 | `GOOGLE_API_KEY` | | gemini API key (required when PROVIDER=gemini) |
 | `GEMINI_MODEL` | `gemini-2.0-flash` | gemini model name |
 
-this service implements routes defined in the [receipt_ocr.proto](https://github.com/xhos/null-protos/blob/main/null/v1/receipt_ocr.proto) file.
+this service implements routes defined in the [receipt_ocr.proto](https://github.com/xhos/nagomi-protos/blob/main/nagomi/v1/receipt_ocr.proto) file.
 
 ## development
 
@@ -50,9 +50,9 @@ regen
 
 ## 🌱 ecosystem
 
-- [null-core](https://github.com/xhos/null-core) - main backend service
-- [null-web](https://github.com/xhos/null-web) - frontend web application
-- [null-mobile](https://github.com/xhos/null-mobile) - mobile appplication
-- [null-protos](https://github.com/xhos/null-protos) - shared protobuf definitions
-- [null-email-parser](https://github.com/xhos/null-email-parser) - email parsing service
-- [null-statement-parser](https://github.com/xhos/null-statement-parser) - bank statement parsing cli tool
+- [nagomi-core](https://github.com/xhos/nagomi-core) - main backend service
+- [nagomi-web](https://github.com/xhos/nagomi-web) - frontend web application
+- [nagomi-mobile](https://github.com/xhos/nagomi-mobile) - mobile appplication
+- [nagomi-protos](https://github.com/xhos/nagomi-protos) - shared protobuf definitions
+- [nagomi-email-parser](https://github.com/xhos/nagomi-email-parser) - email parsing service
+- [nagomi-statement-parser](https://github.com/xhos/nagomi-statement-parser) - bank statement parsing cli tool

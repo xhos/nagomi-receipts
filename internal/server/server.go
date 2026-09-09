@@ -14,7 +14,7 @@ import (
 	"github.com/ollama/ollama/api"
 	"google.golang.org/genai"
 
-	pb "null-receipts/internal/gen/null/v1"
+	pb "nagomi-receipts/internal/gen/nagomi/v1"
 )
 
 const (
