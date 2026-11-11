@@ -4,7 +4,7 @@ services:
     ports:
       - "55556:55556"
     environment:
-      OLLAMA_HOST: http://ollama:11434
+      OPENAI_BASE_URL: http://ollama:11434/v1
     depends_on:
       model-pull:
         condition: service_completed_successfully

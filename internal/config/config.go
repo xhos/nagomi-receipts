@@ -13,22 +13,9 @@ type Config struct {
 	LogLevel      log.Level
 	LogFormat     string // "json" | "text"
 
-	Provider string // "ollama" | "gemini"
-
-	OllamaModel string
-
-	GeminiAPIKey string
-	GeminiModel  string
-}
-
-// safely parse whatever port or address the user provides
-// handdles cases like "8080", ":8080", "127.0.0.1:8080"
-func parseAddress(port string) string {
-	port = strings.TrimSpace(port)
-	if strings.Contains(port, ":") {
-		return port
-	}
-	return ":" + port
+	BaseURL string // any OpenAI-compatible API, e.g. Ollama's http://127.0.0.1:11434/v1
+	APIKey  string // optional; local servers usually don't need one
+	Model   string
 }
 
 func Load() Config {
@@ -38,28 +25,25 @@ func Load() Config {
 	}
 
 	logFormat := strings.ToLower(strings.TrimSpace(os.Getenv("LOG_FORMAT")))
-	if logFormat != "json" && logFormat != "text" {
+	if logFormat != "json" {
 		logFormat = "text"
 	}
 
-	provider := strings.ToLower(strings.TrimSpace(os.Getenv("PROVIDER")))
-	if provider != "gemini" {
-		provider = "ollama"
-	}
-
-	cfg := Config{
+	return Config{
 		ListenAddress: parseAddress(cmp.Or(os.Getenv("LISTEN_ADDRESS"), "127.0.0.1:55556")),
 		LogLevel:      logLevel,
 		LogFormat:     logFormat,
-		Provider:      provider,
-		OllamaModel:   cmp.Or(os.Getenv("OLLAMA_MODEL"), "qwen2.5vl:3b"),
-		GeminiAPIKey:  os.Getenv("GOOGLE_API_KEY"),
-		GeminiModel:   cmp.Or(os.Getenv("GEMINI_MODEL"), "gemini-2.0-flash"),
+		BaseURL:       cmp.Or(os.Getenv("OPENAI_BASE_URL"), "http://127.0.0.1:11434/v1"),
+		APIKey:        os.Getenv("OPENAI_API_KEY"),
+		Model:         cmp.Or(os.Getenv("OPENAI_MODEL"), "qwen2.5vl:3b"),
 	}
+}
 
-	if provider == "gemini" && cfg.GeminiAPIKey == "" {
-		panic("GOOGLE_API_KEY is required when PROVIDER=gemini")
+// parseAddress accepts "8080", ":8080" or "127.0.0.1:8080".
+func parseAddress(addr string) string {
+	addr = strings.TrimSpace(addr)
+	if strings.Contains(addr, ":") {
+		return addr
 	}
-
-	return cfg
+	return ":" + addr
 }

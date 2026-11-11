@@ -51,7 +51,7 @@
         pname = "nagomi-receipts";
         version = self.shortRev or self.dirtyShortRev or "dev";
         src = ./.;
-        vendorHash = "sha256-GV1DKwZjFrY39GaWtF3JHSg9M/5dSbREB9JC9tOHylw=";
+        vendorHash = "sha256-mdMDiZSexhwMt6cmGMfKFG+4GUfbKkL0od8cOPrURSs=";
         subPackages = ["cmd/server"];
       };
     });

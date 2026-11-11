@@ -1,62 +1,37 @@
 package main
 
 import (
-	"context"
-	"io"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/charmbracelet/log"
-	ollamaapi "github.com/ollama/ollama/api"
-	"google.golang.org/genai"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
-	"google.golang.org/grpc/health/grpc_health_v1"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 
 	"nagomi-receipts/internal/config"
-	nagomiv1 "nagomi-receipts/internal/gen/nagomi/v1"
+	pb "nagomi-receipts/internal/gen/nagomi/v1"
 	"nagomi-receipts/internal/server"
+	"nagomi-receipts/internal/vision"
 )
 
 func main() {
 	cfg := config.Load()
 
-	logWriter := io.Writer(os.Stderr)
-	logFormatter := log.TextFormatter
-
-	if cfg.LogFormat != "text" {
-		logFormatter = log.JSONFormatter
+	formatter := log.TextFormatter
+	if cfg.LogFormat == "json" {
+		formatter = log.JSONFormatter
 	}
-
-	logger := log.NewWithOptions(logWriter, log.Options{
+	logger := log.NewWithOptions(os.Stderr, log.Options{
 		ReportTimestamp: true,
 		Level:           cfg.LogLevel,
-		Formatter:       logFormatter,
+		Formatter:       formatter,
 	})
 
-	var ocrService *server.Server
-
-	switch cfg.Provider {
-	case "gemini":
-		client, err := genai.NewClient(context.Background(), &genai.ClientConfig{
-			APIKey:  cfg.GeminiAPIKey,
-			Backend: genai.BackendGeminiAPI,
-		})
-		if err != nil {
-			logger.Fatal("failed to create gemini client", "err", err)
-		}
-		ocrService = server.New(nil, client, cfg.GeminiModel, logger)
-
-	default:
-		client, err := ollamaapi.ClientFromEnvironment()
-		if err != nil {
-			logger.Fatal("failed to create ollama client", "err", err)
-		}
-		ocrService = server.New(client, nil, cfg.OllamaModel, logger)
-	}
+	model := vision.New(cfg.BaseURL, cfg.APIKey, cfg.Model)
 
 	lis, err := net.Listen("tcp", cfg.ListenAddress)
 	if err != nil {
@@ -64,24 +39,22 @@ func main() {
 	}
 
 	srv := grpc.NewServer()
-	nagomiv1.RegisterReceiptOCRServiceServer(srv, ocrService)
+	pb.RegisterReceiptOCRServiceServer(srv, server.New(model, logger))
 
 	healthSrv := health.NewServer()
-	healthSrv.SetServingStatus("", grpc_health_v1.HealthCheckResponse_SERVING)
-	grpc_health_v1.RegisterHealthServer(srv, healthSrv)
-
+	healthpb.RegisterHealthServer(srv, healthSrv)
 	reflection.Register(srv)
 
 	go func() {
-		sigCh := make(chan os.Signal, 1)
-		signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
-		<-sigCh
-		logger.Info("shutting down...")
-		healthSrv.SetServingStatus("", grpc_health_v1.HealthCheckResponse_NOT_SERVING)
+		sig := make(chan os.Signal, 1)
+		signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
+		<-sig
+		logger.Info("shutting down")
+		healthSrv.SetServingStatus("", healthpb.HealthCheckResponse_NOT_SERVING)
 		srv.GracefulStop()
 	}()
 
-	logger.Info("server started", "addr", cfg.ListenAddress, "provider", cfg.Provider)
+	logger.Info("server started", "addr", cfg.ListenAddress, "api", cfg.BaseURL, "model", cfg.Model)
 	if err := srv.Serve(lis); err != nil {
 		logger.Fatal("serve failed", "err", err)
 	}
