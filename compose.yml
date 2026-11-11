@@ -1,5 +1,6 @@
 services:
   ocr:
+    # TODO: there is no Dockerfile, so this build fails
     build: .
     ports:
       - "55556:55556"
